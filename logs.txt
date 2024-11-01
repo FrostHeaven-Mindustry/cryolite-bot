@@ -1,0 +1,56 @@
+
+2024-09-12 21:30:06.219249
+Command raised an exception: SyntaxError: ОШИБКА:  ошибка синтаксиса (примерное положение: "[")
+LINE 1: INSERT INTO clans (['name, ', 'emblem_url, ', 'owner, ', 'pr...
+                           ^
+
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 21:31:29.310964
+Command raised an exception: SyntaxError: ОШИБКА:  ошибка синтаксиса (примерное положение: "[")
+LINE 1: ...O clans (name, emblem_url, owner, prefix) VALUES (['test cla...
+                                                             ^
+
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 21:44:05.118447
+Command raised an exception: SyntaxError: ОШИБКА:  ошибка синтаксиса (примерное положение: "clan")
+LINE 1: ...ns (name, emblem_url, owner, prefix) VALUES (test clan, http...
+                                                             ^
+
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 21:49:42.294871
+Command raised an exception: SyntaxError: ОШИБКА:  ошибка синтаксиса (примерное положение: "WHERE")
+LINE 1: UPDATE users SET  WHERE clan = None
+                          ^
+
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 21:53:37.602542
+Command raised an exception: UndefinedColumn: ОШИБКА:  столбец "none" не существует
+LINE 1: UPDATE users SET clan = None WHERE id = 817312010000924732
+                                ^
+
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 21:55:56.118985
+Command raised an exception: SyntaxError: ОШИБКА:  ошибка синтаксиса (примерное положение: ")")
+LINE 1: UPDATE users SET clan = (4,) WHERE id = 817312010000924732
+                                   ^
+
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 21:57:00.038540
+Command raised an exception: UniqueViolation: ОШИБКА:  повторяющееся значение ключа нарушает ограничение уникальности "clans_prefix_key"
+DETAIL:  Ключ "(prefix)=(tst)" уже существует.
+
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 22:09:26.114089
+Command raised an exception: TypeError: 'NoneType' object is not subscriptable
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
+
+2024-09-12 22:15:00.568016
+Command raised an exception: TypeError: 'NoneType' object is not subscriptable
+<ApplicationCommandInteractionData id=1279523290892865732 name='create_clan' type=<ApplicationCommandType.chat_input: 1> target_id=None target=None resolved=<InteractionDataResolved members={} users={} roles={} channels={} messages={} attachments={}> options=[<ApplicationCommandInteractionDataOption name='name' type=<OptionType.string: 3>>value='test clan' focused=False options=[]>, <ApplicationCommandInteractionDataOption name='prefix' type=<OptionType.string: 3>>value='tst' focused=False options=[]>]>
