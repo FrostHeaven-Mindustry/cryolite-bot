@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from basefuncs import add_to_db, get_from_db, update_db, in_clan
+from database import add_to_db, get_from_db, update_db, in_clan
 
 import disnake
 

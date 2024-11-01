@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from config import keys
+from config import TOKEN
 from os import listdir
 
 import disnake
@@ -13,4 +13,4 @@ for name in listdir('cogs'):
     if name.endswith('.py'):
         bot.load_extension(f'cogs.{name[:-3]}')
 
-bot.run(keys["bot_token"])
+bot.run(TOKEN)

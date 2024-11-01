@@ -2,7 +2,7 @@ from disnake.ext import commands
 from random import randint
 from asyncio import sleep
 from datetime import datetime
-from basefuncs import create_user, get_from_db
+from database import create_user, get_from_db
 
 '''Важное замечание: при попытке запустить данный файл эта строка вернёт ошибку, поскольку файл находится на уровень
 выше, и следует писать ..basefuncs. Однако при загрузке файла через disnake.Bot.load_extension он выполняется как часть
