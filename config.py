@@ -1,10 +1,2 @@
-keys = {
-    "bot_token": "",
-    'database': {
-        'name': '',
-        'user': '',
-        'host': '',
-        'port': '',
-        'password': ''
-    }
-}
+TOKEN = 'bot_token'
+DATABASE_URL = 'postgresql://user:password@ip:port/table'
