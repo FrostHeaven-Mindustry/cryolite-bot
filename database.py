@@ -1,8 +1,9 @@
 from config import DATABASE_URL
 
-from sqlalchemy import Column, BigInteger, Integer, String, ForeignKey, Boolean, Float, Null, ARRAY
+from sqlalchemy import Column, BigInteger, String, ForeignKey, ARRAY, JSON
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncAttrs
+from asyncio import run
 
 
 engine = create_async_engine(DATABASE_URL)
@@ -20,14 +21,14 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False, unique=True)
-    clan_id = Column(Integer, default=Null)
+    clan_id: Mapped[int]
 
-    cryolite = Column(Integer, nullable=False, default=0)
-    ice_dust = Column(BigInteger, nullable=False, default=0)
-    boost_points = Column(Integer, nullable=False, default=0)
+    cryolite: Mapped[int] = mapped_column(nullable=False, default=0)
+    ice_dust: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    boost_points: Mapped[int] = mapped_column(nullable=False, default=0)
 
-    is_admin = Column(Boolean, nullable=False, default=False)
-    has_js = Column(Boolean, nullable=False, default=False)
+    is_admin: Mapped[bool] = Column(nullable=False, default=False)
+    has_js: Mapped[bool] = Column(nullable=False, default=False)
 
     ips = Column(ARRAY(String, dimensions=1))
 
@@ -35,15 +36,52 @@ class User(Base):
 class Player(Base):
     __tablename__ = 'players'
 
-    id = Column(Integer, primary_key=True)
-    uuid = Column(String(24), nullable=False, unique=True)
-    user_id = Column(BigInteger, default=Null)
-    names = Column(ARRAY(String, dimensions=1))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    uuid: Mapped[str] = mapped_column(String(24), nullable=False, unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'))
+    banned_until: Mapped[int] = mapped_column(BigInteger)
+    names: Mapped[list[str]] = mapped_column(ARRAY(String, dimensions=1))
 
     user = relationship()
 
 
-Base.metadata.create_all(bind=engine)
+class PlayerStats(Base):
+    __tablename__ = 'players_stats'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    uuid: Mapped[str] = mapped_column(ForeignKey('players.uuid'))
+
+    join_count: Mapped[int]
+
+    blocks_built: Mapped[int]
+    blocks_destroyed: Mapped[int]
+
+    waves: Mapped[int]
+    wins: Mapped[int]
+    loses: Mapped[int]
+    times_kicked: Mapped[int]
+    times_banned: Mapped[int]
+
+
+class Clans(Base):
+    __tablename__ = 'clans'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str]
+    prefix: Mapped[str] = mapped_column(String(3))
+    slogan: Mapped[str]
+    emblem_url: Mapped[str]
+
+    way_three: Mapped[JSON]
+    buildings: Mapped[JSON]
+
+
+async def create_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+run(create_db())
 
 
 def string(text):
