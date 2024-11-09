@@ -1,12 +1,10 @@
 from disnake.ext import commands
-from random import randint
 from asyncio import sleep
 from datetime import datetime
-from database import create_user, get_from_db
+from database import create_user
 
-'''Важное замечание: при попытке запустить данный файл эта строка вернёт ошибку, поскольку файл находится на уровень
-выше, и следует писать ..basefuncs. Однако при загрузке файла через disnake.Bot.load_extension он выполняется как часть
-основного файла, соответственно, импорты выполняются относительно main.py'''
+from config import greeting_channel
+
 
 import disnake
 
@@ -18,17 +16,18 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: disnake.Member):
-        if create_user(member):  # Приветствуем только пользователей, зашедших впервые
+        if await create_user(member.id):  # Приветствуем только пользователей, зашедших впервые
             emb = disnake.Embed(title='Добро пожаловать!', description=f'{member.name}, рады видеть вас на сервере!')
             emb.set_footer(text=f'Теперь нас {member.guild.member_count}')
-            await self.bot.get_channel(983432883714789479).send(embed=emb)
+            await self.bot.get_channel(greeting_channel).send(embed=emb)
 
     @commands.Cog.listener()
     async def on_ready(self):
         await sleep(2)  # Необходимо, чтобы информация успевала подгружаться
         for guild in self.bot.guilds:
             for user in guild.members:
-                create_user(user)
+                await create_user(user.id)
+        print('ready')
 
     @commands.Cog.listener()
     async def on_slash_command_error(self, inter: disnake.Interaction, error):

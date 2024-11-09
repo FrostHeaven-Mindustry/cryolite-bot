@@ -1,16 +1,15 @@
 from disnake.ext import commands
+from disnake.utils import search_directory
 from config import TOKEN
-from os import listdir
 
 import disnake
 
-bot = commands.Bot(
+bot = commands.InteractionBot(
     intents=disnake.Intents.all(),
     test_guilds=[1265638410685780019]
 )
 
-for name in listdir('cogs'):
-    if name.endswith('.py'):
-        bot.load_extension(f'cogs.{name[:-3]}')
+for name in search_directory('cogs'):
+    bot.load_extension(name)
 
 bot.run(TOKEN)

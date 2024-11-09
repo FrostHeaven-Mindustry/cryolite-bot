@@ -1,10 +1,11 @@
 from config import DATABASE_URL
 
-from sqlalchemy import Column, BigInteger, String, ForeignKey, ARRAY, JSON
+from sqlalchemy import Column, BigInteger, String, ForeignKey, ARRAY, JSON, Boolean, select, update
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncAttrs
 from asyncio import run
 
+from sqlalchemy.exc import IntegrityError
 
 engine = create_async_engine(DATABASE_URL)
 
@@ -17,35 +18,42 @@ class Base(DeclarativeBase, AsyncAttrs):
 
 
 class User(Base):
+    """
+    Discord user database model
+    """
     __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False, unique=True)
-    clan_id: Mapped[int]
+    clan_id: Mapped[int] = mapped_column(nullable=False, default=0)
 
     cryolite: Mapped[int] = mapped_column(nullable=False, default=0)
     ice_dust: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     boost_points: Mapped[int] = mapped_column(nullable=False, default=0)
 
-    is_admin: Mapped[bool] = Column(nullable=False, default=False)
-    has_js: Mapped[bool] = Column(nullable=False, default=False)
+    is_admin: Mapped[bool] = Column(Boolean, nullable=False, default=False)
+    has_js: Mapped[bool] = Column(Boolean, nullable=False, default=False)
 
     ips = Column(ARRAY(String, dimensions=1))
 
 
 class Player(Base):
+    """
+    Mindustry player database model
+    """
     __tablename__ = 'players'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     uuid: Mapped[str] = mapped_column(String(24), nullable=False, unique=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'))
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='SET DEFAULT'))
     banned_until: Mapped[int] = mapped_column(BigInteger)
     names: Mapped[list[str]] = mapped_column(ARRAY(String, dimensions=1))
 
-    user = relationship()
-
 
 class PlayerStats(Base):
+    """
+    Player`s statistic
+    """
     __tablename__ = 'players_stats'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -63,76 +71,75 @@ class PlayerStats(Base):
     times_banned: Mapped[int]
 
 
-class Clans(Base):
+class Clan(Base):
+    """
+    Clan
+    """
     __tablename__ = 'clans'
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    owner: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.user_id'))
     title: Mapped[str]
     prefix: Mapped[str] = mapped_column(String(3))
     slogan: Mapped[str]
     emblem_url: Mapped[str]
 
-    way_three: Mapped[JSON]
-    buildings: Mapped[JSON]
+    way_three: Mapped[dict] = mapped_column(JSON, nullable=True)
+    buildings: Mapped[dict] = mapped_column(JSON, nullable=True)
 
 
-async def create_db():
+async def recreate_db():
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 
-run(create_db())
-
-
-def string(text):
-    return ("'" + text + "'") if isinstance(text, str) else str(text)
-
-
-def create_user(user_id: int):  # Здесь мы добавляем аккаунт пользователя в БД
-    con = connect()
-    cur = con.cursor()
+async def create_user(user_id: int):
     a = True
-    cur.execute(f"SELECT id FROM users WHERE id = {user.id}")
-    account = cur.fetchone()
-    if account:  # Проверяем, существует ли такой аккаунт
-        a = False  # Если да, ничего не делаем
-    else:
-        cur.execute(f"INSERT INTO users(id) VALUES ({user.id})")
-        con.commit()  # Если нет, создаём новый
-    con.close()
-    return a  # И говорим, был ли создан новый аккаунт
+    try:
+        db.add(User(user_id=user_id))
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        a = False
+    return a
 
 
-def get_from_db(table, column, value, *args):
-    con = connect()
-    cur = con.cursor()
-    value = string(value)
-    if column is None:
-        value = column = 1
-    cur.execute(f"SELECT {', '.join(args)} FROM {table} WHERE {column} = {value}")
-    values = cur.fetchone()
-    con.close()
-    return values
+async def get_user(user_id):
+    user = await db.scalar(select(User).where(User.user_id == user_id))
+    return user
 
 
-def add_to_db(table, **values):
-    con = connect()
-    cur = con.cursor()
-    cur.execute(
-        f'INSERT INTO {table} ({', '.join([str(i) for i in values])}) VALUES ({', '.join([string(values[i]) for i in values])})')
-    con.commit()
-    con.close()
+async def get_clan_members(clan_id):
+    return await db.scalars(select(User).where(User.clan_id == clan_id))
 
 
-def update_db(table, column, value, **kwargs):
-    con = connect()
-    cur = con.cursor()
-    if isinstance(value, str):
-        value = "'" + value + "'"
-    cur.execute(f"UPDATE {table} SET {', '.join(f'{i} = {kwargs[i]}' for i in kwargs)} WHERE {column} = {value}")
-    con.commit()
-    con.close()
+async def create_clan(title, prefix, slogan, emblem_url, owner):
+    clan = Clan(title=title, prefix=prefix, slogan=slogan, owner=owner, emblem_url=emblem_url)
+    db.add(clan)
+    await db.commit()
+    clan = await get_clan_by_title(title)
+    await db.execute(update(User).where(User.user_id == owner).values(clan_id=clan.id))
+    await db.commit()
 
 
-def in_clan(uid):
-    return get_from_db("users", "id", uid, "clan")[0]
+async def get_clan_by_title(title):
+    return await db.scalar(select(Clan).where(Clan.title == title))
+
+
+async def get_clan_by_id(id):
+    return await db.get(Clan, id)
+
+
+async def clan_exist(title):
+    clan = await db.scalar(select(Clan).where(Clan.title == title))
+    return clan is not None
+
+
+async def in_clan(user_id):
+    user = await db.scalar(select(User).where(User.user_id == user_id))
+    return bool(user.clan_id)
+
+
+if __name__ == '__main__':
+    run(recreate_db())

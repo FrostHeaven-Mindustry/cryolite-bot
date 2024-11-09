@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from database import add_to_db, get_from_db, update_db, in_clan
+import database as db
 
 import disnake
 
@@ -9,18 +9,45 @@ class Clans(commands.Cog):
         self.bot = bot
 
     @commands.slash_command()
-    async def create_clan(self, inter: disnake.ApplicationCommandInteraction, name, prefix,
+    async def create_clan(self, inter: disnake.ApplicationCommandInteraction, title, prefix, slogan,
                           emblem_url: str = 'https://avatars.mds.yandex.net/'
                                             'i?id=1b8d32839ef85bb972d76605ba2608eb49466647-9065817-images-thumbs&n=13'):
-        if in_clan(inter.author.id):
+        if await db.in_clan(inter.author.id):
             await inter.response.send_message('Вы уже состоите в клане')
-            return
-        if len(prefix) > 3:
-            await inter.response.send_message('Длина префикса не должна превышать 3 символа')
-            return
-        add_to_db('clans', name=name, emblem_url=emblem_url, owner=inter.author.id, prefix=prefix)
-        update_db('users', "id", inter.author.id, clan=get_from_db("clans", "owner", inter.author.id, 'id')[0])
-        await inter.response.send_message(f'Вы успешно создали клан {name}!')
+        elif len(prefix) != 3:
+            await inter.response.send_message('Длина префикса - 3 символа')
+        else:
+            await db.create_clan(title=title, emblem_url=emblem_url, slogan=slogan, owner=inter.author.id,
+                                 prefix=prefix)
+            await inter.response.send_message(f'Вы успешно создали клан {title}!')
+
+    @commands.slash_command()
+    async def clan_info(self, inter: disnake.ApplicationCommandInteraction, clan_title=None):
+        if clan_title is not None:
+            if not await db.clan_exist(clan_title):
+                clan_title = None
+
+        if clan_title is None:
+            if await db.in_clan(inter.author.id):
+                user = await db.get_user(inter.author.id)
+                clan = await db.get_clan_by_id(user.clan_id)
+                clan_title = clan.title
+            else:
+                emb = disnake.Embed(title='Нет клана', description='На данный момент вы не состоите в клане.')
+                await inter.response.send_message(embed=emb)
+                return
+
+        clan = await db.get_clan_by_title(clan_title)
+
+        owner = clan.owner
+        clan_members = [f'<@{i.user_id}>' for i in await db.get_clan_members(clan.id) if i.user_id != owner]
+
+        emb = disnake.Embed(title=f'[{clan.prefix}]' + clan_title)
+        emb.add_field('Девиз:', clan.slogan, inline=False)
+        emb.add_field('Глава клана:', f'<@{owner}>', inline=False)
+        emb.add_field('Участники:', '\n'.join(clan_members), inline=False)
+        emb.set_image(clan.emblem_url)
+        await inter.response.send_message(embed=emb)
 
 
 def setup(bot):
