@@ -87,6 +87,12 @@ class Clan(Base):
     way_three: Mapped[dict] = mapped_column(JSON, nullable=True)
     buildings: Mapped[dict] = mapped_column(JSON, nullable=True)
 
+    async def members(self):
+        return await db.scalars(select(User).where(User.clan_id == self.id))
+
+    async def members_count(self):
+        return len(list(await self.members()))
+
 
 async def recreate_db():
     async with engine.begin() as conn:
@@ -110,17 +116,21 @@ async def get_user(user_id):
     return user
 
 
-async def get_clan_members(clan_id):
-    return await db.scalars(select(User).where(User.clan_id == clan_id))
+async def join_clan(user_id, clan_title):
+    clan = await get_clan_by_title(clan_title)
+    await db.execute(update(User).where(User.user_id == user_id).values(clan_id=clan.id))
+    await db.commit()
 
 
 async def create_clan(title, prefix, slogan, emblem_url, owner):
     clan = Clan(title=title, prefix=prefix, slogan=slogan, owner=owner, emblem_url=emblem_url)
     db.add(clan)
     await db.commit()
-    clan = await get_clan_by_title(title)
-    await db.execute(update(User).where(User.user_id == owner).values(clan_id=clan.id))
-    await db.commit()
+    await join_clan(owner, title)
+
+
+async def get_all_clans():
+    return await db.scalars(select(Clan))
 
 
 async def get_clan_by_title(title):
@@ -131,7 +141,7 @@ async def get_clan_by_id(id):
     return await db.get(Clan, id)
 
 
-async def clan_exist(title):
+async def is_clan_exist(title):
     clan = await db.scalar(select(Clan).where(Clan.title == title))
     return clan is not None
 
