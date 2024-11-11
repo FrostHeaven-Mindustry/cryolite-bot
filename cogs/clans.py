@@ -69,12 +69,14 @@ class Clans(commands.Cog):
         await inter.response.send_message(embed=disnake.Embed(title=embed_title, description=desc))
 
     @commands.slash_command()
-    async def edit_clan(self, inter: disnake.ApplicationCommandInteraction, clan_title=None, prefix=None, slogan=None, emblem_url=None):
-        clan = await db.get_user_clan(inter.author.id)  # Эту штуку потом вписать в database
+    async def edit_clan(self, inter: disnake.ApplicationCommandInteraction, clan_title=None, prefix=None, slogan=None,
+                        emblem_url=None):
+        clan = await db.get_user_clan(inter.author.id)
         if clan is None:
-            await inter.response.send_message(embed=disnake.Embed(title='Нечего редактировать', description='Вы не являетесь главой клана'))
+            await inter.response.send_message(
+                embed=disnake.Embed(title='Нечего редактировать', description='Вы не являетесь главой клана'))
         else:  # добавить обработчик ошибок на случай нарушения unique
-            await clan.edit(clan_title=None, prefix=None, slogan=None, emblem_url=None)  # Эту штуку тоже прописать
+            await clan.edit(clan_title, prefix, slogan, emblem_url)
             await inter.response.send_message(embed=disnake.Embed(title='Успешно', description='Клан отредактирован'))
 
     @commands.slash_command()
@@ -82,10 +84,10 @@ class Clans(commands.Cog):
         clan = await db.get_user_clan(inter.author.id)
         if clan is None:
             embed_title, desc = 'Нельзя исключить участника', 'Вы не являетесь главой клана'
-        elif not await clan.member_in_clan(member.id):  # Эту штуку тоже реализовать
+        elif not await clan.member_in_clan(member.id):
             embed_title, desc = 'Нельзя исключить участника', 'Пользователь не состоит в вашем клане'
         else:
-            clan.kick_member(member.id)  # И это тоже сделать
+            await db.kick_member(member.id)
             embed_title, desc = 'Успешно', f'Пользователь <@{member.id}> исключён из клана'
         await inter.response.send_message(embed=disnake.Embed(title=embed_title, description=desc))
 

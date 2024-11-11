@@ -102,17 +102,17 @@ class Clan(Base):
             self.slogan = slogan
         if emblem_url is not None:
             self.emblem_url = emblem_url
-        await self.update()
+        await db.scalar(update(Clan),
+                        [{'id': self.id,
+                          'title': self.title,
+                          'prefix': self.prefix,
+                          'slogan': self.slogan,
+                          'emblem_url': self.emblem_url}])
         await db.commit()
 
     async def member_in_clan(self, user_id):
         user = await get_user(user_id)
         return self.id == user.clan_id
-
-    async def kick_member(self, user_id):
-        await db.execute(update(User).where(User.user_id == user_id).values(clan_id=0))
-        await db.commit()
-        
 
 
 async def recreate_db():
@@ -135,6 +135,11 @@ async def create_user(user_id: int):
 async def get_user(user_id):
     user = await db.scalar(select(User).where(User.user_id == user_id))
     return user
+
+
+async def kick_member(user_id):
+    await db.execute(update(User).where(User.user_id == user_id).values(clan_id=0))
+    await db.commit()
 
 
 async def join_clan(user_id, clan_title):
