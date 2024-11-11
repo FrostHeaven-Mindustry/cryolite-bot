@@ -93,6 +93,27 @@ class Clan(Base):
     async def members_count(self):
         return len(list(await self.members()))
 
+    async def edit(self, clan_title, prefix, slogan, emblem_url):
+        if clan_title is not None:
+            self.title = clan_title
+        if prefix is not None:
+            self.prefix = prefix
+        if slogan is not None:
+            self.slogan = slogan
+        if emblem_url is not None:
+            self.emblem_url = emblem_url
+        await self.update()
+        await db.commit()
+
+    async def member_in_clan(self, user_id):
+        user = await get_user(user_id)
+        return self.id == user.clan_id
+
+    async def kick_member(self, user_id):
+        await db.execute(update(User).where(User.user_id == user_id).values(clan_id=0))
+        await db.commit()
+        
+
 
 async def recreate_db():
     async with engine.begin() as conn:
@@ -149,6 +170,10 @@ async def is_clan_exist(title):
 async def in_clan(user_id):
     user = await db.scalar(select(User).where(User.user_id == user_id))
     return bool(user.clan_id)
+
+
+async def get_user_clan(user_id):
+    return await db.scalar(select(Clan).where(Clan.owner == user_id))
 
 
 if __name__ == '__main__':
