@@ -68,6 +68,27 @@ class Clans(commands.Cog):
             embed_title, desc = 'Успешно', f'Вы присоединились к клану {clan_title}'
         await inter.response.send_message(embed=disnake.Embed(title=embed_title, description=desc))
 
+    @commands.slash_command()
+    async def edit_clan(self, inter: disnake.ApplicationCommandInteraction, clan_title=None, prefix=None, slogan=None, emblem_url=None):
+        clan = await db.get_user_clan(inter.author.id)  # Эту штуку потом вписать в database
+        if clan is None:
+            await inter.response.send_message(embed=disnake.Embed(title='Нечего редактировать', description='Вы не являетесь главой клана'))
+        else:  # добавить обработчик ошибок на случай нарушения unique
+            await clan.edit(clan_title=None, prefix=None, slogan=None, emblem_url=None)  # Эту штуку тоже прописать
+            await inter.response.send_message(embed=disnake.Embed(title='Успешно', description='Клан отредактирован'))
+
+    @commands.slash_command()
+    async def kick_member(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member):
+        clan = await db.get_user_clan(inter.author.id)
+        if clan is None:
+            embed_title, desc = 'Нельзя исключить участника', 'Вы не являетесь главой клана'
+        elif not await clan.member_in_clan(member.id):  # Эту штуку тоже реализовать
+            embed_title, desc = 'Нельзя исключить участника', 'Пользователь не состоит в вашем клане'
+        else:
+            clan.kick_member(member.id)  # И это тоже сделать
+            embed_title, desc = 'Успешно', f'Пользователь <@{member.id}> исключён из клана'
+        await inter.response.send_message(embed=disnake.Embed(title=embed_title, description=desc))
+
 
 def setup(bot):
     bot.add_cog(Clans(bot))
