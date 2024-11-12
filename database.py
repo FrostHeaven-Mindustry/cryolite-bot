@@ -1,4 +1,5 @@
 from config import DATABASE_URL
+from errors import UniqueError
 
 from sqlalchemy import Column, BigInteger, String, ForeignKey, ARRAY, JSON, Boolean, select, update
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
@@ -79,8 +80,8 @@ class Clan(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     owner: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.user_id'))
-    title: Mapped[str]
-    prefix: Mapped[str] = mapped_column(String(3))
+    title: Mapped[str] = mapped_column(unique=True)
+    prefix: Mapped[str] = mapped_column(String(3), unique=True)
     slogan: Mapped[str]
     emblem_url: Mapped[str]
 
@@ -102,13 +103,17 @@ class Clan(Base):
             self.slogan = slogan
         if emblem_url is not None:
             self.emblem_url = emblem_url
-        await db.scalar(update(Clan),
-                        [{'id': self.id,
-                          'title': self.title,
-                          'prefix': self.prefix,
-                          'slogan': self.slogan,
-                          'emblem_url': self.emblem_url}])
-        await db.commit()
+        try:
+            await db.scalar(update(Clan),
+                            [{'id': self.id,
+                              'title': self.title,
+                              'prefix': self.prefix,
+                              'slogan': self.slogan,
+                              'emblem_url': self.emblem_url}])
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            raise UniqueError('clan_edit')
 
     async def member_in_clan(self, user_id):
         user = await get_user(user_id)
@@ -150,9 +155,13 @@ async def join_clan(user_id, clan_title):
 
 async def create_clan(title, prefix, slogan, emblem_url, owner):
     clan = Clan(title=title, prefix=prefix, slogan=slogan, owner=owner, emblem_url=emblem_url)
-    db.add(clan)
-    await db.commit()
-    await join_clan(owner, title)
+    try:
+        db.add(clan)
+        await db.commit()
+        await join_clan(owner, title)
+    except IntegrityError:
+        await db.rollback()
+        raise UniqueError('clan_edit')
 
 
 async def get_all_clans():

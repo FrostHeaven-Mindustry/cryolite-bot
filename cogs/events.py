@@ -2,6 +2,7 @@ from disnake.ext import commands
 from asyncio import sleep
 from datetime import datetime
 from database import create_user
+from errors import UniqueError
 
 from config import greeting_channel
 
@@ -33,6 +34,9 @@ class Events(commands.Cog):
     async def on_slash_command_error(self, inter: disnake.Interaction, error):
         if isinstance(error, commands.CommandOnCooldown):
             await inter.response.send_message(f'Попробуйте снова через {round(error.retry_after, 2)} сек.')
+        elif isinstance(error, disnake.ext.commands.CommandInvokeError):
+            if isinstance(error.original, UniqueError):
+                await inter.response.send_message(error.original.error_message)
         else:
             await inter.response.send_message('При выполнении команды произошла ошибка. Вы можете написать разработчику'
                                               ' (<@817312010000924732>), при этом желательно указать время и'

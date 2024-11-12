@@ -75,7 +75,7 @@ class Clans(commands.Cog):
         if clan is None:
             await inter.response.send_message(
                 embed=disnake.Embed(title='Нечего редактировать', description='Вы не являетесь главой клана'))
-        else:  # добавить обработчик ошибок на случай нарушения unique
+        else:
             await clan.edit(clan_title, prefix, slogan, emblem_url)
             await inter.response.send_message(embed=disnake.Embed(title='Успешно', description='Клан отредактирован'))
 
