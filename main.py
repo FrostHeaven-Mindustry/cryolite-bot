@@ -33,19 +33,6 @@ async def unload(ctx, extension: str) -> None:
   print(f"Cog \"{extension}\" is successfully unloaded.")
   await ctx.send(f"Cog `{extension}` is successfully unloaded.")
 
-
-@bot.event
-async def on_connect():
-  print(f"Connecting the bot \"{bot.user}\" to the discord...")
-
-@bot.event
-async def on_disconnect():
-  print(f"Bot \"{bot.user}\" disconnected or could not get to the discord.")
-
-@bot.event
-async def on_ready():
-  print("The bot is ready to work.")
-        
 for name in search_directory('cogs'):
     bot.load_extension(name)
 
