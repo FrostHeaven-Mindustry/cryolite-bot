@@ -19,7 +19,7 @@ async def load(inter: disnake.ApplicationCommandInteraction, extension: str):
 
 @bot.slash_command()
 @commands.is_owner()
-async def reload(inter: disnake.ApplicationCommandInteraction, extension: str) -> None:
+async def reload(inter: disnake.ApplicationCommandInteraction, extension: str):
     bot.unload_extension(f"cogs.{extension}")
     bot.load_extension(f"cogs.{extension}")
     await inter.response.send_message(f"Cog `{extension}` is successfully reloaded.", ephemeral=True)
@@ -27,7 +27,7 @@ async def reload(inter: disnake.ApplicationCommandInteraction, extension: str) -
 
 @bot.slash_command()
 @commands.is_owner()
-async def unload(inter: disnake.ApplicationCommandInteraction, extension: str) -> None:
+async def unload(inter: disnake.ApplicationCommandInteraction, extension: str):
     bot.unload_extension(f"cogs.{extension}")
     await inter.response.send_message(f"Cog `{extension}` is successfully unloaded.", ephemeral=True)
 
