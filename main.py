@@ -9,29 +9,28 @@ bot = commands.InteractionBot(
     test_guilds=[1265638410685780019]
 )
 
-@bot.command()
+
+@bot.slash_command()
 @commands.is_owner()
-async def load(ctx, extension: str) -> None:
-  bot.load_extension(f"cogs.{extension}")
-  print(f"Cog \"{extension}\" uploaded successfully.")
-  await ctx.send(f"Cog `{extension}` uploaded successfully.")
+async def load(inter: disnake.ApplicationCommandInteraction, extension: str):
+    bot.load_extension(f"cogs.{extension}")
+    await inter.response.send_message(f"Cog `{extension}` uploaded successfully.", ephemeral=True)
 
 
-@bot.command()
+@bot.slash_command()
 @commands.is_owner()
-async def reload(ctx, extension: str) -> None:
-  bot.unload_extension(f"cogs.{extension}")
-  bot.load_extension(f"cogs.{extension}")
-  print(f"Cog \"{extension}\" successful reloaded.")
-  await ctx.send(f"Cog `{extension}` is successfully reloaded.")
+async def reload(inter: disnake.ApplicationCommandInteraction, extension: str) -> None:
+    bot.unload_extension(f"cogs.{extension}")
+    bot.load_extension(f"cogs.{extension}")
+    await inter.response.send_message(f"Cog `{extension}` is successfully reloaded.", ephemeral=True)
 
 
-@bot.command()
+@bot.slash_command()
 @commands.is_owner()
-async def unload(ctx, extension: str) -> None:
-  bot.unload_extension(f"cogs.{extension}")
-  print(f"Cog \"{extension}\" is successfully unloaded.")
-  await ctx.send(f"Cog `{extension}` is successfully unloaded.")
+async def unload(inter: disnake.ApplicationCommandInteraction, extension: str) -> None:
+    bot.unload_extension(f"cogs.{extension}")
+    await inter.response.send_message(f"Cog `{extension}` is successfully unloaded.", ephemeral=True)
+
 
 for name in search_directory('cogs'):
     bot.load_extension(name)
